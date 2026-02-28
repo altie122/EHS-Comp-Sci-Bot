@@ -3,8 +3,6 @@
 A lightweight bot built with [discord.js](https://discord.js.org/) and [Drizzle ORM](https://orm.drizzle.team/) running on the [Bun](https://bun.com) JavaScript runtime.  
 It is designed for Cheyenne East High School's Computer Science server.
 
----
-
 This bot was created to help manage the verification process for new members, and to provide a way to easily support new features in the server.
 ---
 
@@ -42,9 +40,9 @@ This bot was created to help manage the verification process for new members, an
 
    ```bash
    # generate new migration skeleton:
-   bunx drizzle-kit generate:pg
+   bunx drizzle-kit generate
    # or run all pending migrations:
-   bunx drizzle-kit migrate:up
+   bunx drizzle-kit migrate
    ```
 
    The schema currently defines a simple `config` table to hold JSON data.
@@ -115,3 +113,9 @@ Migration files live in the `drizzle/` directory and are managed by `drizzle-kit
 4. Submit a pull request describing your work
 
 Please keep dependencies minimal and maintain compatibility with Bun and PostgreSQL.
+
+---
+
+## License
+
+This poject is licensed under the MIT license. See /LICENSE for more details
