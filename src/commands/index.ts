@@ -41,8 +41,13 @@ const commands = [
         description: "Message to create for rules",
         type: 3,
         required: true,
-      }
+      },
     ],
+  },
+  {
+    name: "refresh_verification_rules",
+    description: "Refreshes the rules message in the verification embed.",
+    default_member_permissions: "8",
   },
 ];
 

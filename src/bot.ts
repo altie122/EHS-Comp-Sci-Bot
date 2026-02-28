@@ -39,26 +39,60 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             // Validate inputs
             //
             const savedConfig = await getVerificationConfig();
-            const unverifiedRole = interaction.options.getRole("unverified_role");
+            const unverifiedRole =
+              interaction.options.getRole("unverified_role");
             const verifiedRole = interaction.options.getRole("verified_role");
-            const verificationChannel = interaction.options.getChannel("verification_channel");
-            const rulesChannel = interaction.options.getChannel("rules_channel");
+            const verificationChannel = interaction.options.getChannel(
+              "verification_channel",
+            );
+            const rulesChannel =
+              interaction.options.getChannel("rules_channel");
             const rulesMessageId = interaction.options.get("rules_message_id");
 
-            if (!unverifiedRole || !verifiedRole || !verificationChannel || !rulesChannel || !rulesMessageId) {
-              return await interaction.reply({ content: "Invalid arguments!", flags: 64 });
+            if (
+              !unverifiedRole ||
+              !verifiedRole ||
+              !verificationChannel ||
+              !rulesChannel ||
+              !rulesMessageId
+            ) {
+              return await interaction.reply({
+                content: "Invalid arguments!",
+                flags: 64,
+              });
             }
-            if (verificationChannel.type !== ChannelType.GuildText || rulesChannel.type !== ChannelType.GuildText) {
-              return await interaction.reply({ content: "Channels must be text-based.", flags: 64 });
+            if (
+              verificationChannel.type !== ChannelType.GuildText ||
+              rulesChannel.type !== ChannelType.GuildText
+            ) {
+              return await interaction.reply({
+                content: "Channels must be text-based.",
+                flags: 64,
+              });
             }
-            if (!rulesMessageId.value || typeof rulesMessageId.value !== "string") {
-              return await interaction.reply({ content: "Rules message ID must be a string.", flags: 64 });
+            if (
+              !rulesMessageId.value ||
+              typeof rulesMessageId.value !== "string"
+            ) {
+              return await interaction.reply({
+                content: "Rules message ID must be a string.",
+                flags: 64,
+              });
             }
-            if (!(verificationChannel instanceof TextChannel) || !verificationChannel.isSendable()) {
-              return await interaction.reply({ content: "Verification channel must be sendable.", flags: 64 });
+            if (
+              !(verificationChannel instanceof TextChannel) ||
+              !verificationChannel.isSendable()
+            ) {
+              return await interaction.reply({
+                content: "Verification channel must be sendable.",
+                flags: 64,
+              });
             }
             if (!(rulesChannel instanceof TextChannel)) {
-              return await interaction.reply({ content: "Rules channel must be text-based.", flags: 64 });
+              return await interaction.reply({
+                content: "Rules channel must be text-based.",
+                flags: 64,
+              });
             }
 
             //
@@ -66,7 +100,9 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             //
             let rulesMessage;
             try {
-              rulesMessage = await rulesChannel.messages.fetch(rulesMessageId.value);
+              rulesMessage = await rulesChannel.messages.fetch(
+                rulesMessageId.value,
+              );
             } catch (err) {
               console.error("Failed to fetch rules message:", err);
               return await interaction.reply({
@@ -81,7 +117,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             const embed = new EmbedBuilder()
               .setTitle("Student Verification")
               .setDescription(
-                `Click the button below to verify that you agree to the following rules:\n\n${rulesMessage.content}`
+                `Click the button below to verify that you agree to the following rules:\n\n${rulesMessage.content}`,
               )
               .setColor(0x00aaff);
 
@@ -89,7 +125,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
               new ButtonBuilder()
                 .setCustomId("open_verification_modal")
                 .setLabel("Verify Me")
-                .setStyle(ButtonStyle.Primary)
+                .setStyle(ButtonStyle.Primary),
             );
 
             //
@@ -113,10 +149,14 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             // Delete old message if exists
             //
             if (savedConfig) {
-              const previousChannel = client.channels.cache.get(savedConfig.verificationChannelId);
+              const previousChannel = client.channels.cache.get(
+                savedConfig.verificationChannelId,
+              );
               if (previousChannel?.isTextBased()) {
                 try {
-                  const oldMessage = await previousChannel.messages.fetch(savedConfig.verificationMessageId);
+                  const oldMessage = await previousChannel.messages.fetch(
+                    savedConfig.verificationMessageId,
+                  );
                   await oldMessage.delete();
                 } catch (_) {
                   // ignore missing or deleted messages
@@ -145,6 +185,92 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             });
           }
         }
+        if (interaction.commandName === "refresh_verification_rules") {
+          try {
+            const savedConfig = await getVerificationConfig();
+            if (!savedConfig) {
+              return await interaction.reply({
+                content: "Verification system not initialized.",
+                flags: 64,
+              });
+            }
+
+            // Fetch rules message
+            const rulesChannel = await client.channels.fetch(
+              savedConfig.rulesChannelId,
+            );
+            if (!rulesChannel?.isTextBased()) {
+              return await interaction.reply({
+                content: "Rules channel is not text-based or not found.",
+                flags: 64,
+              });
+            }
+
+            let rulesMessage;
+            try {
+              rulesMessage = await rulesChannel.messages.fetch(
+                savedConfig.rulesMessageId,
+              );
+            } catch {
+              return await interaction.reply({
+                content: "Rules message not found.",
+                flags: 64,
+              });
+            }
+
+            const rulesText = rulesMessage.content;
+
+            // Now fetch the verification message
+            const verificationChannel = await client.channels.fetch(
+              savedConfig.verificationChannelId,
+            );
+
+            if (!verificationChannel?.isTextBased()) {
+              return await interaction.reply({
+                content: "Verification channel not found or not text-based.",
+                flags: 64,
+              });
+            }
+
+            let verificationMessage;
+            try {
+              verificationMessage = await verificationChannel.messages.fetch(
+                savedConfig.verificationMessageId,
+              );
+            } catch (err) {
+              console.error("Failed to fetch verification message:", err);
+              return await interaction.reply({
+                content: "Could not fetch verification message.",
+                flags: 64,
+              });
+            }
+
+            // Rebuild the embed with updated rules
+            const updatedEmbed = new EmbedBuilder()
+              .setTitle("Student Verification")
+              .setDescription(
+                `Click the button below to verify that you agree to the following rules:\n\n${rulesText}`,
+              )
+              .setColor(0x00aaff);
+
+            // Preserve existing buttons
+            await verificationMessage.edit({
+              embeds: [updatedEmbed],
+              components: verificationMessage.components,
+            });
+
+            await interaction.reply({
+              content: "Verification rules refreshed!",
+              flags: 64,
+            });
+          } catch (error) {
+            console.error("refresh_verification_rules failed:", error);
+            return await interaction.reply({
+              content: "Something went wrong during setup.",
+              flags: 64,
+            });
+          }
+        }
       }
 
       //
@@ -163,7 +289,9 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
               .setStyle(TextInputStyle.Short)
               .setRequired(true);
 
-            const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput);
+            const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(
+              nameInput,
+            );
 
             modal.addComponents(row1);
 
