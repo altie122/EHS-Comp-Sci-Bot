@@ -12,7 +12,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { GetVerificationConfig, SetVerificationConfig } from "./config";
+import { getVerificationConfig, setVerificationConfig } from "./config";
 
 export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
   const client = new Client({
@@ -38,7 +38,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             //
             // Validate inputs
             //
-            const savedConfig = GetVerificationConfig();
+            const savedConfig = await getVerificationConfig();
             const unverifiedRole = interaction.options.getRole("unverified_role");
             const verifiedRole = interaction.options.getRole("verified_role");
             const verificationChannel = interaction.options.getChannel("verification_channel");
@@ -127,7 +127,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             //
             // Save config
             //
-            SetVerificationConfig({
+            await setVerificationConfig({
               verificationChannelId: verificationChannel.id,
               verificationRoleId: verifiedRole.id,
               unverifiedRoleId: unverifiedRole.id,
@@ -181,7 +181,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
       if (interaction.isModalSubmit()) {
         if (interaction.customId === "verification_modal") {
           try {
-            const savedConfig = GetVerificationConfig();
+            const savedConfig = await getVerificationConfig();
             if (!savedConfig) return;
 
             const name = interaction.fields.getTextInputValue("student_name");

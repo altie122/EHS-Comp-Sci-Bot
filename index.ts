@@ -1,6 +1,6 @@
 import { setupCommands } from "./src/commands/index";
 import { startBot } from "./src/bot";
-import { GetVerificationConfig } from "./src/config";
+import { getVerificationConfig } from "./src/config";
 
 async function main() {
   // Initialize environment variables
@@ -17,7 +17,7 @@ async function main() {
   // Start bot
   await startBot({ DISCORD_TOKEN });
 
-  console.log(GetVerificationConfig())
+  console.log(await getVerificationConfig())
 }
 
 main();

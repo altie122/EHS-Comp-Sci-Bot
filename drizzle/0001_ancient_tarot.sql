@@ -1,0 +1,1 @@
+ALTER TABLE "verification_config" RENAME TO "config";

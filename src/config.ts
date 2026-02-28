@@ -1,9 +1,8 @@
-import fs from "fs";
-import path from "path";
+import { db } from "./db/client";
+import { config } from "./db/schema";
+import { eq } from "drizzle-orm";
 
-const configFolderPath = path.join(process.cwd(), "config/");
-
-type VerificationConfig = {
+export type VerificationConfig = {
   verificationChannelId: string;
   verificationRoleId: string;
   unverifiedRoleId: string;
@@ -12,18 +11,24 @@ type VerificationConfig = {
   rulesMessageId: string;
 };
 
-export function GetVerificationConfig() {
-  const configFilePath = path.join(configFolderPath, "verification.json");
+// Fetch config
+export async function getVerificationConfig() {
+  const row = await db
+    .select()
+    .from(config)
+    .where(eq(config.id, "verification_config"))
+    .limit(1);
 
-  if (!fs.existsSync(configFilePath)) {
-    fs.writeFileSync(configFilePath, "");
-    return undefined;
-  }
+  return row[0]?.data as VerificationConfig | undefined;
+}
 
-  return JSON.parse(fs.readFileSync(configFilePath, "utf8")) as VerificationConfig;
-};
-
-export function SetVerificationConfig(config: VerificationConfig) {
-  const configFilePath = path.join(configFolderPath, "verification.json");
-  fs.writeFileSync(configFilePath, JSON.stringify(config));
-};
+// Save config
+export async function setVerificationConfig(data: VerificationConfig) {
+  await db
+    .insert(config)
+    .values({ id: "verification_config", data })
+    .onConflictDoUpdate({
+      target: config.id,
+      set: { data },
+    });
+}
