@@ -117,7 +117,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             const embed = new EmbedBuilder()
               .setTitle("Student Verification")
               .setDescription(
-                `Click the button below to verify that you agree to the following rules:\n\n${rulesMessage.content}`,
+                `Click the button below to verify that you agree to the following rules and get your username changed to your real name:\n\n${rulesMessage.content}`,
               )
               .setColor(0x00aaff);
 
@@ -249,7 +249,7 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
             const updatedEmbed = new EmbedBuilder()
               .setTitle("Student Verification")
               .setDescription(
-                `Click the button below to verify that you agree to the following rules:\n\n${rulesText}`,
+                `Click the button below to verify that you agree to the following rules and get your username changed to your real name:\n\n${rulesText}`,
               )
               .setColor(0x00aaff);
 
