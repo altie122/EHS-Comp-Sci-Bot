@@ -195,6 +195,8 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
               });
             }
 
+            console.log("Refreshing verification with config:", savedConfig);
+
             // Fetch rules message
             const rulesChannel = await client.channels.fetch(
               savedConfig.rulesChannelId,
@@ -211,14 +213,26 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
               rulesMessage = await rulesChannel.messages.fetch(
                 savedConfig.rulesMessageId,
               );
-            } catch {
+            } catch (err) {
+              console.error(
+                "Rules message not found with ID:",
+                savedConfig.rulesMessageId,
+                err,
+              );
               return await interaction.reply({
                 content: "Rules message not found.",
                 flags: 64,
               });
             }
 
-            const rulesText = rulesMessage.content;
+            // CHANGED: prefer embed description, fallback to content
+            const rulesEmbed = rulesMessage.embeds[0];
+            const rulesText =
+              rulesEmbed?.description ??
+              rulesMessage.content ??
+              "No rules text found. Please check the rules message.";
+
+            console.log("Using rules text:", JSON.stringify(rulesText));
 
             // Now fetch the verification message
             const verificationChannel = await client.channels.fetch(
@@ -238,12 +252,21 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
                 savedConfig.verificationMessageId,
               );
             } catch (err) {
-              console.error("Failed to fetch verification message:", err);
+              console.error(
+                "Failed to fetch verification message with ID:",
+                savedConfig.verificationMessageId,
+                err,
+              );
               return await interaction.reply({
                 content: "Could not fetch verification message.",
                 flags: 64,
               });
             }
+
+            console.log("Editing verification message:", {
+              channelId: verificationChannel.id,
+              messageId: verificationMessage.id,
+            });
 
             // Rebuild the embed with updated rules
             const updatedEmbed = new EmbedBuilder()
@@ -263,8 +286,15 @@ export async function startBot({ DISCORD_TOKEN }: { DISCORD_TOKEN: string }) {
               content: "Verification rules refreshed!",
               flags: 64,
             });
-          } catch (error) {
+          } catch (error: any) {
             console.error("refresh_verification_rules failed:", error);
+            console.error(
+              "Error details:",
+              "name:",
+              error?.name,
+              "message:",
+              error?.message,
+            );
             return await interaction.reply({
               content: "Something went wrong during setup.",
               flags: 64,
